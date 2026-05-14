@@ -1250,7 +1250,7 @@ body::before {
 
     <div class="sec-lbl">Selecione seu perfil</div>
     <div class="profile-list">
-      <div class="profile-card v-card" onclick="openSDR('Paula','Pla','v',false)">
+      <div class="profile-card v-card" onclick="openSDR('Duyane','Pla','v',false)">
         <div class="avatar" style="background:rgba(79,156,249,0.1);color:var(--v);">Pla</div>
         <div class="profile-info">
           <div class="profile-name">Paula</div>
@@ -1506,7 +1506,7 @@ let db = null;
 const DEFAULT_PIN = '2026';
 let isAuth = false;
 
-function loadCfg(){ try{ const r=localStorage.getItem('sdr_fb_cfg'); return r?JSON.parse(r):null; }catch{ return null; } }
+function loadCfg(){ try{ const r=localStorage.getItem('cur:sdr_fb_cfg'); return r?JSON.parse(r):null; }catch{ return null; } }
 function getPin(){ const c=loadCfg(); return(c&&c.pin)?c.pin:DEFAULT_PIN; }
 
 function initFB(){
@@ -1526,7 +1526,7 @@ window.saveConfig=function(){
     pin:document.getElementById('cfg-pin').value.trim()||DEFAULT_PIN,
   };
   if(!cfg.apiKey||!cfg.projectId){showToast('Preencha API Key e Project ID','err');return;}
-  localStorage.setItem('sdr_fb_cfg',JSON.stringify(cfg));
+  localStorage.setItem('cur:sdr_fb_cfg',JSON.stringify(cfg));
   const ok=initFB();
   const s=document.getElementById('cfg-status');
   if(ok){s.style.color='var(--green)';s.textContent='✓ Firebase conectado!';showToast('Conectado!','ok');}
@@ -1588,9 +1588,9 @@ function sKey(sdr){return`${sdr}_${MONTH_SUMMARY_KEY}`;}
 function rgb(c){return c==='v'?'79,142,247':c==='jq'?'16,217,138':'160,96,240';}
 
 async function dbSet(sdr,day,data,metrics){
-  const lk='loc_'+dKey(sdr,day);
+  const lk='cur:loc_'+dKey(sdr,day);
   localStorage.setItem(lk,JSON.stringify(data));
-  const sumKey='loc_'+sKey(sdr);
+  const sumKey='cur:loc_'+sKey(sdr);
   let summary={};
   try{const r=localStorage.getItem(sumKey);if(r)summary=JSON.parse(r);}catch{}
   const old=JSON.parse(localStorage.getItem(lk+'.old')||'{}');
@@ -1603,8 +1603,8 @@ async function dbSet(sdr,day,data,metrics){
   if(db){
     try{
       const batch=writeBatch(db);
-      batch.set(doc(db,'sdr_tracker',dKey(sdr,day)),data);
-      batch.set(doc(db,'sdr_summary',sKey(sdr)),summary,{merge:true});
+      batch.set(doc(db,'sdr_tracker_curicica',dKey(sdr,day)),data);
+      batch.set(doc(db,'sdr_summary_curicica',sKey(sdr)),summary,{merge:true});
       await batch.commit();
     }catch(e){
       console.error('Firebase write error:', e);
@@ -1617,40 +1617,40 @@ async function dbSet(sdr,day,data,metrics){
 async function dbGet(sdr,day){
   if(db){
     try{
-      const s=await getDoc(doc(db,'sdr_tracker',dKey(sdr,day)));
+      const s=await getDoc(doc(db,'sdr_tracker_curicica',dKey(sdr,day)));
       if(s.exists()){
         const d=s.data();
-        localStorage.setItem('loc_'+dKey(sdr,day),JSON.stringify(d));
+        localStorage.setItem('cur:loc_'+dKey(sdr,day),JSON.stringify(d));
         return d;
       } else {
-        localStorage.removeItem('loc_'+dKey(sdr,day));
+        localStorage.removeItem('cur:loc_'+dKey(sdr,day));
         return null;
       }
     }catch(e){
       console.warn('Firebase read error, usando cache local:',e);
     }
   }
-  const r=localStorage.getItem('loc_'+dKey(sdr,day));
+  const r=localStorage.getItem('cur:loc_'+dKey(sdr,day));
   return r?JSON.parse(r):null;
 }
 
 async function getMonthSummary(sdr){
   if(db){
     try{
-      const s=await getDoc(doc(db,'sdr_summary',sKey(sdr)));
+      const s=await getDoc(doc(db,'sdr_summary_curicica',sKey(sdr)));
       if(s.exists()){
         const d=s.data();
-        localStorage.setItem('loc_'+sKey(sdr),JSON.stringify(d));
+        localStorage.setItem('cur:loc_'+sKey(sdr),JSON.stringify(d));
         return d;
       }
     }catch(e){ console.warn('Firebase summary error:',e); }
   }
-  const r=localStorage.getItem('loc_'+sKey(sdr));
+  const r=localStorage.getItem('cur:loc_'+sKey(sdr));
   return r?JSON.parse(r):{};
 }
 
 const SDRS=[
-  {name:'Paula',ini:'Pla',col:'v',metrics:MF,jully:false},
+  {name:'Duyane',ini:'Pla',col:'v',metrics:MF,jully:false},
   {name:'Caroline',ini:'Carol',col:'jq',metrics:MF,jully:false},
   {name:'Jully',ini:'Ju',col:'ju',metrics:MJ,jully:true},
 ];
@@ -2285,7 +2285,7 @@ window.closeMenu=function(){
 // ══════════════════════ STATUS PÚBLICO ══════════════════════
 // Verifica o DIA ANTERIOR — se não preencheu ontem, mostra Pendente
 async function loadPublicStatus(){
-  const map=[{sdr:'Paula',id:'pub-v'},{sdr:'Caroline',id:'pub-jq'},{sdr:'Jully',id:'pub-ju'}];
+  const map=[{sdr:'Duyane',id:'pub-v'},{sdr:'Caroline',id:'pub-jq'},{sdr:'Jully',id:'pub-ju'}];
   const checkDay = todayN > 1 ? todayN - 1 : null;
 
   for(const{sdr,id}of map){
