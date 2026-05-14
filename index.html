@@ -1,6 +1,4 @@
-
-<!DOCTYPE html>
-<html lang="pt-BR">
+'sdr_fb_cfg'<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -1588,9 +1586,9 @@ function sKey(sdr){return`${sdr}_${MONTH_SUMMARY_KEY}`;}
 function rgb(c){return c==='v'?'79,142,247':c==='jq'?'16,217,138':'160,96,240';}
 
 async function dbSet(sdr,day,data,metrics){
-  const lk='cur:loc_'+dKey(sdr,day);
+  const lk='loc_'+dKey(sdr,day);
   localStorage.setItem(lk,JSON.stringify(data));
-  const sumKey='cur:loc_'+sKey(sdr);
+  const sumKey='loc_'+sKey(sdr);
   let summary={};
   try{const r=localStorage.getItem(sumKey);if(r)summary=JSON.parse(r);}catch{}
   const old=JSON.parse(localStorage.getItem(lk+'.old')||'{}');
@@ -1603,8 +1601,8 @@ async function dbSet(sdr,day,data,metrics){
   if(db){
     try{
       const batch=writeBatch(db);
-      batch.set(doc(db,'sdr_tracker_curicica',dKey(sdr,day)),data);
-      batch.set(doc(db,'sdr_summary_curicica',sKey(sdr)),summary,{merge:true});
+      batch.set(doc(db,'sdr_tracker',dKey(sdr,day)),data);
+      batch.set(doc(db,'sdr_summary',sKey(sdr)),summary,{merge:true});
       await batch.commit();
     }catch(e){
       console.error('Firebase write error:', e);
@@ -1617,35 +1615,35 @@ async function dbSet(sdr,day,data,metrics){
 async function dbGet(sdr,day){
   if(db){
     try{
-      const s=await getDoc(doc(db,'sdr_tracker_curicica',dKey(sdr,day)));
+      const s=await getDoc(doc(db,'sdr_tracker',dKey(sdr,day)));
       if(s.exists()){
         const d=s.data();
-        localStorage.setItem('cur:loc_'+dKey(sdr,day),JSON.stringify(d));
+        localStorage.setItem('loc_'+dKey(sdr,day),JSON.stringify(d));
         return d;
       } else {
-        localStorage.removeItem('cur:loc_'+dKey(sdr,day));
+        localStorage.removeItem('loc_'+dKey(sdr,day));
         return null;
       }
     }catch(e){
       console.warn('Firebase read error, usando cache local:',e);
     }
   }
-  const r=localStorage.getItem('cur:loc_'+dKey(sdr,day));
+  const r=localStorage.getItem('loc_'+dKey(sdr,day));
   return r?JSON.parse(r):null;
 }
 
 async function getMonthSummary(sdr){
   if(db){
     try{
-      const s=await getDoc(doc(db,'sdr_summary_curicica',sKey(sdr)));
+      const s=await getDoc(doc(db,'sdr_summary',sKey(sdr)));
       if(s.exists()){
         const d=s.data();
-        localStorage.setItem('cur:loc_'+sKey(sdr),JSON.stringify(d));
+        localStorage.setItem('loc_'+sKey(sdr),JSON.stringify(d));
         return d;
       }
     }catch(e){ console.warn('Firebase summary error:',e); }
   }
-  const r=localStorage.getItem('cur:loc_'+sKey(sdr));
+  const r=localStorage.getItem('loc_'+sKey(sdr));
   return r?JSON.parse(r):{};
 }
 
